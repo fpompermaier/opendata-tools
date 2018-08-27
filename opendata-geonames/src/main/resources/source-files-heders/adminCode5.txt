@@ -1,0 +1,3 @@
+the new adm5 column is not yet exported in the other files (in order to not break import scripts).
+Instead it is availabe as separate file.
+columns: geonameId,adm5code

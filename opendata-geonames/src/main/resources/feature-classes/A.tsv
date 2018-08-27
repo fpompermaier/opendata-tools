@@ -1,0 +1,24 @@
+code	label	desc
+ADM1	first-order administrative division	a primary administrative division of a country, such as a state in the United States
+ADM1H	historical first-order administrative division	a former first-order administrative division
+ADM2	second-order administrative division	a subdivision of a first-order administrative division
+ADM2H	historical second-order administrative division	a former second-order administrative division
+ADM3	third-order administrative division	a subdivision of a second-order administrative division
+ADM3H	historical third-order administrative division	a former third-order administrative division
+ADM4	fourth-order administrative division	a subdivision of a third-order administrative division
+ADM4H	historical fourth-order administrative division	a former fourth-order administrative division
+ADM5	fifth-order administrative division	a subdivision of a fourth-order administrative division
+ADMD	administrative division	an administrative division of a country, undifferentiated as to administrative level
+ADMDH	historical administrative division	a former administrative division of a political entity, undifferentiated as to administrative level
+LTER	leased area	a tract of land leased to another country, usually for military installations
+PCL	political entity	
+PCLD	dependent political entity	
+PCLF	freely associated state	
+PCLH	historical political entity	a former political entity
+PCLI	independent political entity	
+PCLIX	section of independent political entity	
+PCLS	semi-independent political entity	
+PRSH	parish	an ecclesiastical district
+TERR	territory	
+ZN	zone	
+ZNB	buffer zone	a zone recognized as a buffer between two nations in which military presence is minimal or absent
