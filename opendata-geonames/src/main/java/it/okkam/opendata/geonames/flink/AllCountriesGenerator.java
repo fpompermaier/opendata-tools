@@ -1,10 +1,10 @@
-package it.okkam.opendata.geonames;
+package it.okkam.opendata.geonames.flink;
 
-import static it.okkam.opendata.geonames.GeoNamesConstants.ALL_COUNTRIES_COL_COUNTRY_CODE;
-import static it.okkam.opendata.geonames.GeoNamesConstants.ALL_COUNTRIES_COL_FEATURE_CLASS;
-import static it.okkam.opendata.geonames.GeoNamesConstants.ALL_COUNTRIES_COL_FEATURE_CODE;
-import static it.okkam.opendata.geonames.GeoNamesConstants.ALL_COUNTRIES_COL_GEONAMES_ID;
-import static it.okkam.opendata.geonames.GeoNamesConstants.getGeonamesUrl;
+import static it.okkam.opendata.geonames.GeoNamesUtils.ALL_COUNTRIES_COL_COUNTRY_CODE;
+import static it.okkam.opendata.geonames.GeoNamesUtils.ALL_COUNTRIES_COL_FEATURE_CLASS;
+import static it.okkam.opendata.geonames.GeoNamesUtils.ALL_COUNTRIES_COL_FEATURE_CODE;
+import static it.okkam.opendata.geonames.GeoNamesUtils.COL_GEONAMES_ID;
+import static it.okkam.opendata.geonames.GeoNamesUtils.getGeonamesUrl;
 
 import java.util.Map;
 import java.util.Map.Entry;
@@ -34,7 +34,7 @@ public class AllCountriesGenerator implements FlatMapFunction<Row, Tuple2<String
     this.allCountriesInFpos = allCountriesInFpos;
     this.allCountriesOutFn = allCountriesOutFn;
     this.filtersMap = filtersMap;
-    this.geonameIdPos = allCountriesInFpos.get(ALL_COUNTRIES_COL_GEONAMES_ID);
+    this.geonameIdPos = allCountriesInFpos.get(COL_GEONAMES_ID);
     this.featureClassPos = allCountriesInFpos.get(ALL_COUNTRIES_COL_FEATURE_CLASS);
     this.featureCodePos = allCountriesInFpos.get(ALL_COUNTRIES_COL_FEATURE_CODE);
     this.countryCodePos = allCountriesInFpos.get(ALL_COUNTRIES_COL_COUNTRY_CODE);
