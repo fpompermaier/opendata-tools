@@ -12,6 +12,12 @@ public class GeoNamesUtils {
     throw new IllegalArgumentException("Utility class");
   }
 
+
+  public static final String BASE_DIR = "file:/media/okkam/FLASSD/datalinks/datasets/geonames/";
+  public static final String ALT_NAMES_FILENAME = "alternateNamesV2.txt";
+  public static final String ALL_COUNTRIES_FILENAME = "allCountries.txt";
+  public static final String OUT_DIR = "/tmp/geonames/";
+  
   private static final String IPV4_PATTERN =
       "(([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.){3}([01]?\\d\\d?|2[0-4]\\d|25[0-5])";
   private static final Pattern VALID_IPV4_PATTERN =
@@ -25,7 +31,19 @@ public class GeoNamesUtils {
   public static final Character FIELD_DELIM = '\t';
   public static final String FIELD_DELIM_STR = FIELD_DELIM + "";
 
+  public static final String SUFFIX_CODE_COL = "_CODE";
+  public static final String SUFFIX_GEONAMES_COL = "_GEONAMES_URL";
+  
+  public static final String FEAT_CLASS_ADM = "A";
+  public static final String FEAT_CODE_ADM1 = "ADM1";
+  public static final String FEAT_CODE_ADM2 = "ADM2";
+  public static final String FEAT_CODE_ADM3 = "ADM3";
+  public static final String FEAT_CODE_ADM4 = "ADM4";
+  public static final String FEAT_CODE_ADM5 = "ADM5";
+  public static final String FEAT_CODE_ERROR = "*ERROR*";
+  
   public static final String LANG_DEFAULT = "default";
+  public static final String LANG_ABBR = "abbr";
   public static final String LANG_IT = "it";
   public static final String LANG_DE = "de";
   public static final String LANG_EN = "en";
@@ -59,6 +77,15 @@ public class GeoNamesUtils {
   public static final String ALL_COUNTRIES_COL_TIMEZONE = "TIMEZONE";
   public static final String ALL_COUNTRIES_COL_LAST_UPDATE = "LASTUPDATE";
 
+  // this field doesn't actually exists in allCountries.txt but it's in adminCode5.txt
+  public static final String ADM5_COL_ADM5 = "ADM5";
+
+  public static String[] getAdm5CodesInFieldNames() {
+    return new String[] {//
+        COL_GEONAMES_ID, //
+        ADM5_COL_ADM5//
+    };
+  }
 
   public static String[] getAllCountriesInFieldNames() {
     return new String[] {//
@@ -83,6 +110,23 @@ public class GeoNamesUtils {
         ALL_COUNTRIES_COL_LAST_UPDATE};
   }
 
+  public static final String[] ALL_COUNTRIES_OUT_EXTRA_COLS = new String[] {//
+      COL_GEONAMES_URL, ADM5_COL_ADM5, //
+      ALL_COUNTRIES_COL_ADM1 + SUFFIX_CODE_COL, //
+      ALL_COUNTRIES_COL_ADM1 + SUFFIX_GEONAMES_COL, //
+      ALL_COUNTRIES_COL_ADM2 + SUFFIX_CODE_COL, //
+      ALL_COUNTRIES_COL_ADM2 + SUFFIX_GEONAMES_COL, //
+      ALL_COUNTRIES_COL_ADM3 + SUFFIX_CODE_COL, //
+      ALL_COUNTRIES_COL_ADM3 + SUFFIX_GEONAMES_COL, //
+      ALL_COUNTRIES_COL_ADM4 + SUFFIX_CODE_COL, //
+      ALL_COUNTRIES_COL_ADM4 + SUFFIX_GEONAMES_COL, //
+      ADM5_COL_ADM5 + SUFFIX_CODE_COL, //
+      ADM5_COL_ADM5 + SUFFIX_GEONAMES_COL, //
+  };
+
+  public static String[] getLocationsOutFieldNames() {
+    return joinArrays(getAllCountriesInFieldNames(), ALL_COUNTRIES_OUT_EXTRA_COLS);
+  }
 
   public static final String ALTNAMES_COL_ID = "ALTNAME_ID";
   public static final String ALTNAMES_COL_LANG = "LANG";
@@ -116,6 +160,7 @@ public class GeoNamesUtils {
     List<List<String>> ret = new ArrayList<>();
     List<String> locationColumns = new ArrayList<>();
     locationColumns.add(COL_GEONAMES_URL);
+    locationColumns.add(COL_GEONAMES_ID);
     locationColumns.add(ALL_COUNTRIES_COL_NAME);
     locationColumns.add(ALL_COUNTRIES_COL_FEATURE_CLASS);
     locationColumns.add(ALL_COUNTRIES_COL_FEATURE_CODE);

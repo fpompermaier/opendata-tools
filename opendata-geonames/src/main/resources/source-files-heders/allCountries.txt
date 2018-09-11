@@ -1,3 +1,5 @@
+GEONAME_ID,NAME,NAME_ASCII,ALT_NAMES,LAT,LON,FEAT_CLASS,FEAT_CODE,COUNTRY_CODE,CC2,ADM1,ADM2,ADM3,ADM4,POPULATION,ELEVATION,DEM,TIMEZONE,LASTUPDATE
+
 The main 'geoname' table has the following fields :
 ---------------------------------------------------
 geonameid         : integer id of record in geonames database

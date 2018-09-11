@@ -1,55 +1,130 @@
 package it.okkam.opendata.geonames.flink;
 
+import static it.okkam.opendata.geonames.GeoNamesUtils.ALL_COUNTRIES_COL_ADM1;
+import static it.okkam.opendata.geonames.GeoNamesUtils.ALL_COUNTRIES_COL_ADM2;
+import static it.okkam.opendata.geonames.GeoNamesUtils.ALL_COUNTRIES_COL_ADM3;
+import static it.okkam.opendata.geonames.GeoNamesUtils.ALL_COUNTRIES_COL_ADM4;
 import static it.okkam.opendata.geonames.GeoNamesUtils.ALL_COUNTRIES_COL_COUNTRY_CODE;
 import static it.okkam.opendata.geonames.GeoNamesUtils.ALL_COUNTRIES_COL_FEATURE_CLASS;
 import static it.okkam.opendata.geonames.GeoNamesUtils.ALL_COUNTRIES_COL_FEATURE_CODE;
+import static it.okkam.opendata.geonames.GeoNamesUtils.ALL_COUNTRIES_COL_POPULATION;
 import static it.okkam.opendata.geonames.GeoNamesUtils.COL_GEONAMES_ID;
+import static it.okkam.opendata.geonames.GeoNamesUtils.COL_GEONAMES_URL;
+import static it.okkam.opendata.geonames.GeoNamesUtils.SUFFIX_CODE_COL;
+import static it.okkam.opendata.geonames.GeoNamesUtils.getAllCountriesInFieldNames;
+import static it.okkam.opendata.geonames.GeoNamesUtils.getFieldPosMap;
 import static it.okkam.opendata.geonames.GeoNamesUtils.getGeonamesUrl;
+
+import it.okkam.opendata.geonames.GeoNamesUtils;
+import it.okkam.opendata.geonames.flink.model.LabelledRow;
 
 import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.flink.api.common.functions.FlatMapFunction;
-import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.types.Row;
 import org.apache.flink.util.Collector;
 
-public class AllCountriesGenerator implements FlatMapFunction<Row, Tuple2<String, Row>> {
+public class AllCountriesGenerator implements FlatMapFunction<Row, LabelledRow> {
 
   private static final long serialVersionUID = 1L;
 
   private final String[] allCountriesOutFn;
-  private final int geonameIdPos;
+  private final int geonamesIdPos;
+  private final int geonamesUrlPos;
   private final int featureClassPos;
   private final int featureCodePos;
   private final int countryCodePos;
-  private final Row reuse;
+  private final int adm1Pos;
+  private final int adm1CodePos;
+  private final int adm2Pos;
+  private final int adm2CodePos;
+  private final int adm3Pos;
+  private final int adm3CodePos;
+  private final int adm4Pos;
+  private final int adm4CodePos;
+  private final int populationPos;
 
-  private final Map<String, Integer> allCountriesInFpos;
+  private final Map<String, Integer> allCountriesOutFpos;
   private final Map<String, String[]> filtersMap;
 
-  public AllCountriesGenerator(Map<String, Integer> allCountriesInFpos, String[] allCountriesOutFn,
-      Map<String, String[]> filtersMap) {
-    this.reuse = new Row(allCountriesOutFn.length);
-    this.allCountriesInFpos = allCountriesInFpos;
-    this.allCountriesOutFn = allCountriesOutFn;
+  private final Row reuse;
+
+  public AllCountriesGenerator(String[] allCountriesExtraFn, Map<String, String[]> filtersMap) {
+    final String[] allCountriesInFn = getAllCountriesInFieldNames();
+    this.reuse = new Row(allCountriesInFn.length + allCountriesExtraFn.length);// add extra fields
+    this.allCountriesOutFn = GeoNamesUtils.joinArrays(allCountriesInFn, allCountriesExtraFn);
+    this.allCountriesOutFpos = getFieldPosMap(allCountriesOutFn);
     this.filtersMap = filtersMap;
-    this.geonameIdPos = allCountriesInFpos.get(COL_GEONAMES_ID);
-    this.featureClassPos = allCountriesInFpos.get(ALL_COUNTRIES_COL_FEATURE_CLASS);
-    this.featureCodePos = allCountriesInFpos.get(ALL_COUNTRIES_COL_FEATURE_CODE);
-    this.countryCodePos = allCountriesInFpos.get(ALL_COUNTRIES_COL_COUNTRY_CODE);
+    this.geonamesIdPos = allCountriesOutFpos.get(COL_GEONAMES_ID);
+    this.geonamesUrlPos = allCountriesOutFpos.get(COL_GEONAMES_URL);
+    this.featureClassPos = allCountriesOutFpos.get(ALL_COUNTRIES_COL_FEATURE_CLASS);
+    this.featureCodePos = allCountriesOutFpos.get(ALL_COUNTRIES_COL_FEATURE_CODE);
+    this.populationPos = allCountriesOutFpos.get(ALL_COUNTRIES_COL_POPULATION);
+    this.countryCodePos = allCountriesOutFpos.get(ALL_COUNTRIES_COL_COUNTRY_CODE);
+    this.adm1Pos = allCountriesOutFpos.get(ALL_COUNTRIES_COL_ADM1);
+    this.adm2Pos = allCountriesOutFpos.get(ALL_COUNTRIES_COL_ADM2);
+    this.adm3Pos = allCountriesOutFpos.get(ALL_COUNTRIES_COL_ADM3);
+    this.adm4Pos = allCountriesOutFpos.get(ALL_COUNTRIES_COL_ADM4);
+
+    this.adm1CodePos = allCountriesOutFpos.get(ALL_COUNTRIES_COL_ADM1 + SUFFIX_CODE_COL);
+    this.adm2CodePos = allCountriesOutFpos.get(ALL_COUNTRIES_COL_ADM2 + SUFFIX_CODE_COL);
+    this.adm3CodePos = allCountriesOutFpos.get(ALL_COUNTRIES_COL_ADM3 + SUFFIX_CODE_COL);
+    this.adm4CodePos = allCountriesOutFpos.get(ALL_COUNTRIES_COL_ADM4 + SUFFIX_CODE_COL);
   }
 
+
   @Override
-  public void flatMap(Row row, Collector<Tuple2<String, Row>> out) throws Exception {
+  public void flatMap(Row row, Collector<LabelledRow> out) throws Exception {
     for (Entry<String, String[]> filterEntry : filtersMap.entrySet()) {
       if (checkFilterConf(row, filterEntry.getValue())) {
-        reuse.setField(0, getGeonamesUrl((String) row.getField(geonameIdPos)));
-        for (int i = 1; i < reuse.getArity(); i++) {
-          final Integer fieldPos = allCountriesInFpos.get(allCountriesOutFn[i]);
-          reuse.setField(i, fieldPos == null ? null : row.getField(fieldPos));
+        for (int i = 0; i < row.getArity(); i++) {
+          Object rowValue = row.getField(i);
+          final boolean isNullAdm1 = i == adm1Pos && "00".equals(rowValue);
+          final boolean isNullPopulation = i == populationPos && "0".equals(rowValue);
+          if (isNullAdm1 || isNullPopulation) {
+            rowValue = null;
+          }
+          reuse.setField(i, rowValue);
         }
-        out.collect(new Tuple2<>(filterEntry.getKey(), reuse));
+        fillExtraFields();
+        out.collect(new LabelledRow(filterEntry.getKey(), reuse));
+      }
+    }
+
+  }
+
+
+  private void fillExtraFields() {
+    reuse.setField(adm1CodePos, null);
+    reuse.setField(adm2CodePos, null);
+    reuse.setField(adm3CodePos, null);
+    reuse.setField(adm4CodePos, null);
+    reuse.setField(geonamesUrlPos, getGeonamesUrl((String) reuse.getField(geonamesIdPos)));
+    final String country = (String) reuse.getField(countryCodePos);
+    final String adm1 = (String) reuse.getField(adm1Pos);
+    final String adm2 = (String) reuse.getField(adm2Pos);
+    final String adm3 = (String) reuse.getField(adm3Pos);
+    final String adm4 = (String) reuse.getField(adm4Pos);
+    final boolean adm1Empty = adm1 == null || adm1.isEmpty();
+    final boolean adm2Empty = adm2 == null || adm2.isEmpty();
+    final boolean adm3Empty = adm3 == null || adm3.isEmpty();
+    final boolean adm4Empty = adm4 == null || adm4.isEmpty();
+
+    if (!adm1Empty) {
+      final String adm1Code = country + "." + adm1;
+      reuse.setField(adm1CodePos, adm1Code);
+      if (!adm2Empty) {
+        final String adm2Code = adm1Code + "." + adm2;
+        reuse.setField(adm2CodePos, adm2Code);
+        if (!adm3Empty) {
+          final String adm3Code = adm2Code + "." + adm3;
+          reuse.setField(adm3CodePos, adm3Code);
+          if (!adm4Empty) {
+            final String adm4Code = adm3Code + "." + adm4;
+            reuse.setField(adm4CodePos, adm4Code);
+          }
+        }
       }
     }
   }
@@ -69,5 +144,6 @@ public class AllCountriesGenerator implements FlatMapFunction<Row, Tuple2<String
     final boolean validFeatureCode = filter[2].equals("*") || filter[2].equals(featureCode);
     return validFeatureClass && validFeatureCode && validCountryCode;
   }
+  
 }
 
