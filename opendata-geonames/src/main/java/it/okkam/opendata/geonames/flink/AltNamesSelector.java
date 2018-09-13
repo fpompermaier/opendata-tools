@@ -13,14 +13,12 @@ import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.types.Row;
 import org.apache.flink.util.Collector;
 
-public class AltNamesGenerator implements FlatMapFunction<Row, Row> {
+public class AltNamesSelector implements FlatMapFunction<Row, Row> {
   private static final long serialVersionUID = 1L;
   private final Set<String> langsToFilter;
   private final int langPos;
-  private final Map<String, Integer> altNamesFieldPos;
 
-  public AltNamesGenerator(String[] langsToFilter) {
-    this.altNamesFieldPos = GeoNamesUtils.getFieldPosMap(GeoNamesUtils.getAltNamesInFieldNames());
+  public AltNamesSelector(String[] langsToFilter, Map<String, Integer> altNamesFieldPos) {
     this.langPos = altNamesFieldPos.get(ALTNAMES_COL_LANG);
     this.langsToFilter = new HashSet<>(Arrays.asList(langsToFilter));
   }

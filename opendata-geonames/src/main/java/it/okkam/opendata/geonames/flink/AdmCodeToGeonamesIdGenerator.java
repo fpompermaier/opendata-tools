@@ -1,5 +1,6 @@
 package it.okkam.opendata.geonames.flink;
 
+import static it.okkam.opendata.geonames.GeoNamesUtils.ADM5_COL_ADM5;
 import static it.okkam.opendata.geonames.GeoNamesUtils.ALL_COUNTRIES_COL_ADM1;
 import static it.okkam.opendata.geonames.GeoNamesUtils.ALL_COUNTRIES_COL_ADM2;
 import static it.okkam.opendata.geonames.GeoNamesUtils.ALL_COUNTRIES_COL_ADM3;
@@ -7,6 +8,7 @@ import static it.okkam.opendata.geonames.GeoNamesUtils.ALL_COUNTRIES_COL_ADM4;
 import static it.okkam.opendata.geonames.GeoNamesUtils.ALL_COUNTRIES_COL_COUNTRY_CODE;
 import static it.okkam.opendata.geonames.GeoNamesUtils.ALL_COUNTRIES_COL_FEATURE_CLASS;
 import static it.okkam.opendata.geonames.GeoNamesUtils.ALL_COUNTRIES_COL_FEATURE_CODE;
+import static it.okkam.opendata.geonames.GeoNamesUtils.ALL_COUNTRIES_COL_LAST_UPDATE;
 import static it.okkam.opendata.geonames.GeoNamesUtils.COL_GEONAMES_ID;
 
 import it.okkam.opendata.geonames.GeoNamesUtils;
@@ -28,9 +30,11 @@ public class AdmCodeToGeonamesIdGenerator implements FlatMapFunction<Row, AdmCod
   private final int adm2Pos;
   private final int adm3Pos;
   private final int adm4Pos;
+  private final int adm5Pos;
   private final int featClassPos;
   private final int featCodePos;
   private final int geonamesIdPos;
+  private final int lastUpdatePos;
 
   public AdmCodeToGeonamesIdGenerator(String[] allCountriesInFn, String targetFeatCode) {
     this.targetFeatClass = GeoNamesUtils.FEAT_CLASS_ADM;
@@ -44,6 +48,8 @@ public class AdmCodeToGeonamesIdGenerator implements FlatMapFunction<Row, AdmCod
     this.adm2Pos = allCountriesInFpos.get(ALL_COUNTRIES_COL_ADM2);
     this.adm3Pos = allCountriesInFpos.get(ALL_COUNTRIES_COL_ADM3);
     this.adm4Pos = allCountriesInFpos.get(ALL_COUNTRIES_COL_ADM4);
+    this.adm5Pos = allCountriesInFpos.get(ADM5_COL_ADM5);
+    this.lastUpdatePos = allCountriesInFpos.get(ALL_COUNTRIES_COL_LAST_UPDATE);
   }
 
   @Override
@@ -62,15 +68,18 @@ public class AdmCodeToGeonamesIdGenerator implements FlatMapFunction<Row, AdmCod
     final String adm2 = (String) row.getField(adm2Pos);
     final String adm3 = (String) row.getField(adm3Pos);
     final String adm4 = (String) row.getField(adm4Pos);
-    final String admCode = getAdmCode(country, adm1, adm2, adm3, adm4);
-    out.collect(new AdmCodeTuple(admCode, GeoNamesUtils.getGeonamesUrl(geonamesId)));
+    final String adm5 = (String) row.getField(adm5Pos);
+    final String lastUpdate = (String) row.getField(lastUpdatePos);
+    final String admCode = getAdmCode(country, adm1, adm2, adm3, adm4, adm5);
+    out.collect(new AdmCodeTuple(admCode, geonamesId, lastUpdate));
   }
 
-  private String getAdmCode(String country, String adm1, String adm2, String adm3, String adm4) {
+  private String getAdmCode(String country, String adm1, String adm2, String adm3, String adm4, String adm5) {
     final boolean adm1Empty = adm1 == null || adm1.isEmpty();
     final boolean adm2Empty = adm2 == null || adm2.isEmpty();
     final boolean adm3Empty = adm3 == null || adm3.isEmpty();
     final boolean adm4Empty = adm4 == null || adm4.isEmpty();
+    final boolean adm5Empty = adm5 == null || adm5.isEmpty();
 
     if (!adm1Empty) {
       final String adm1Code = country + "." + adm1;
@@ -91,6 +100,12 @@ public class AdmCodeToGeonamesIdGenerator implements FlatMapFunction<Row, AdmCod
             final String adm4Code = adm3Code + "." + adm4;
             if (targetFeatCode.equals(GeoNamesUtils.FEAT_CODE_ADM4)) {
               return adm4Code;
+            }
+            if (!adm5Empty) {
+              final String adm5Code = adm4Code + "." + adm5;
+              if (targetFeatCode.equals(GeoNamesUtils.FEAT_CODE_ADM5)) {
+                return adm5Code;
+              }
             }
           }
         }

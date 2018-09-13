@@ -4,7 +4,6 @@ import it.okkam.opendata.geonames.flink.FlinkUtils;
 
 import org.apache.flink.api.common.typeinfo.BasicTypeInfo;
 import org.apache.flink.api.java.tuple.Tuple2;
-import org.apache.flink.api.java.typeutils.RowTypeInfo;
 import org.apache.flink.api.java.typeutils.TupleTypeInfo;
 import org.apache.flink.types.Row;
 
@@ -12,9 +11,8 @@ public class LabelledRow extends Tuple2<String, Row> {
 
   private static final long serialVersionUID = 1L;
 
-  public LabelledRow() {
-  }
-  
+  public LabelledRow() {}
+
   public LabelledRow(String label, Row row) {
     this.f0 = label;
     this.f1 = row;
@@ -36,12 +34,9 @@ public class LabelledRow extends Tuple2<String, Row> {
     this.f1 = row;
   }
 
-  public static RowTypeInfo getRowTypeInfo(String[] fieldNames) {
-    return new RowTypeInfo(FlinkUtils.getDefaultFlinkFieldTypes(fieldNames));
-  }
-
   public static TupleTypeInfo<LabelledRow> getTypeInfo(String[] fieldNames) {
-    return new TupleTypeInfo<>(LabelledRow.class, BasicTypeInfo.STRING_TYPE_INFO, getRowTypeInfo(fieldNames));
+    return new TupleTypeInfo<>(LabelledRow.class, BasicTypeInfo.STRING_TYPE_INFO,
+        FlinkUtils.getDefaultRowTypeInfo(fieldNames));
   }
 
 }

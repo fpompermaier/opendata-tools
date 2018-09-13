@@ -4,6 +4,7 @@ import org.apache.flink.api.common.typeinfo.BasicTypeInfo;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.api.java.LocalEnvironment;
+import org.apache.flink.api.java.typeutils.RowTypeInfo;
 import org.apache.flink.configuration.BlobServerOptions;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.CoreOptions;
@@ -11,16 +12,11 @@ import org.apache.flink.configuration.TaskManagerOptions;
 
 public class FlinkUtils {
 
-  private static final String FLINK_TMP_DIR = "/tmp";
-  
-  // read everything as string
-  public static TypeInformation<?>[] getDefaultFlinkFieldTypes(String[] fieldNames) {
-    final TypeInformation<?>[] ret = new TypeInformation[fieldNames.length];
-    for (int i = 0; i < ret.length; i++) {
-      ret[i] = BasicTypeInfo.STRING_TYPE_INFO;
-    }
-    return ret;
+  private FlinkUtils() {
+    throw new IllegalArgumentException("Utility class");
   }
+
+  private static final String FLINK_TMP_DIR = "/tmp";
 
   /**
    * Returns a pre-configured Execution env suitable for local tests from an IDE.
@@ -40,7 +36,29 @@ public class FlinkUtils {
       env = ExecutionEnvironment.createLocalEnvironment(conf);
       env.setParallelism(Runtime.getRuntime().availableProcessors());
     }
-     env.getConfig().disableGenericTypes();//NOSONAR
+    env.getConfig().disableGenericTypes();// NOSONAR
     return env;
+  }
+
+  // read everything as string
+  public static TypeInformation<?>[] getDefaultFlinkFieldTypes(String[] fieldNames) {
+    final TypeInformation<?>[] ret = new TypeInformation[fieldNames.length];
+    for (int i = 0; i < ret.length; i++) {
+      ret[i] = BasicTypeInfo.STRING_TYPE_INFO;
+    }
+    return ret;
+  }
+
+  public static RowTypeInfo getDefaultRowTypeInfo(String[] fieldNames) {
+    return new RowTypeInfo(FlinkUtils.getDefaultFlinkFieldTypes(fieldNames));
+  }
+
+  public static int getFieldPos(String[] fieldNames, String targetField) {
+    for (int i = 0; i < fieldNames.length; i++) {
+      if (fieldNames[i].equals(targetField)) {
+        return i;
+      }
+    }
+    return -1;
   }
 }

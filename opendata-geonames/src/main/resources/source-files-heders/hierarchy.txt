@@ -1,4 +1,4 @@
-parentId, childId, type.
+PARENT_ID, CHILD_ID, REL_TYPE
 
 The type 'ADM' stands for the admin hierarchy modeled by the admin1-4 codes. 
 The other entries are entered with the user interface. 

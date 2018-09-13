@@ -7,7 +7,7 @@ import java.util.Map;
 import org.apache.flink.api.common.functions.JoinFunction;
 import org.apache.flink.types.Row;
 
-public class AllCountriesAltNamesJoiner implements JoinFunction<LabelledRow, Row, LabelledRow> {
+public class LabelledRowJoiner implements JoinFunction<LabelledRow, Row, LabelledRow> {
 
   private static final long serialVersionUID = 1L;
   private String[] leftFields;
@@ -17,7 +17,7 @@ public class AllCountriesAltNamesJoiner implements JoinFunction<LabelledRow, Row
   private final Map<String, Integer> outFieldsPos;
   private final LabelledRow reuse = new LabelledRow();
 
-  public AllCountriesAltNamesJoiner(String[] leftFields, String[] rightFields,
+  public LabelledRowJoiner(String[] leftFields, String[] rightFields,
       Map<String, Integer> outFieldsPos, Map<String, Integer> leftFieldPos,
       Map<String, Integer> rightFieldPos) {
     this.leftFields = leftFields;
@@ -29,16 +29,16 @@ public class AllCountriesAltNamesJoiner implements JoinFunction<LabelledRow, Row
   }
 
   @Override
-  public LabelledRow join(LabelledRow locRow, Row altNamesRow) throws Exception {
-    reuse.setLabel(locRow.getLabel());
+  public LabelledRow join(LabelledRow labelledRow, Row rowToJoin) throws Exception {
+    reuse.setLabel(labelledRow.getLabel());
     for (String fieldName : leftFields) {
       final Integer outFieldPos = outFieldsPos.get(fieldName);
-      reuse.getRow().setField(outFieldPos, locRow.getRow().getField(leftFieldPos.get(fieldName)));
+      reuse.getRow().setField(outFieldPos, labelledRow.getRow().getField(leftFieldPos.get(fieldName)));
 
     }
     for (String fieldName : rightFields) {
       final Integer outFieldPos = outFieldsPos.get(fieldName);
-      reuse.getRow().setField(outFieldPos, altNamesRow.getField(rightFieldPos.get(fieldName)));
+      reuse.getRow().setField(outFieldPos, rowToJoin.getField(rightFieldPos.get(fieldName)));
 
     }
     return reuse;
